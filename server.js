@@ -8,6 +8,7 @@ const { expressjwt: jwt } = require('express-jwt');
 const jwks = require('jwks-rsa');
 const { celebrate, Segments } = require('celebrate');
 const { PollSerializer } = require('./serializers');
+const Poll = require('./models/poll');
 
 const dotenv = require('dotenv')
 dotenv.config()
@@ -29,13 +30,21 @@ var jwtCheck = jwt({
     algorithms: ['RS256'],   
 })
 
-
+// get all authenticated user's polls
+app.get('/polls', jwtCheck, async (req, res) => {
+    const polls = await Poll.find({ user_id: req.auth.sub })
+    return res.json({ polls })
+})
 
 // handles creation of posts
 app.post('/polls', celebrate({ [Segments.BODY]: PollSerializer }), jwtCheck, (req, res) => {
     let data = req.body;
-
     return res.json({ message: "authenticated"})
+})
+
+// visiting users can get specific poll [to vote]
+app.get('/polls/:poll_id', (req, res) => {
+
 })
 
 
