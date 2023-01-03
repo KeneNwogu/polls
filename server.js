@@ -6,7 +6,7 @@ const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json()
 const { expressjwt: jwt } = require('express-jwt');
 const jwks = require('jwks-rsa');
-const { celebrate, Segments } = require('celebrate');
+const { celebrate, Segments, errors } = require('celebrate');
 const { PollSerializer } = require('./serializers');
 const Poll = require('./models/poll');
 
@@ -56,6 +56,7 @@ io.on('connection', (socket) => {
     // handle connected sockets
 })
 
+app.use(errors());
 app.use((err, req, res, next) => {
     if (err.name === "UnauthorizedError") {
         res.status(401).json({ message: "Invalid token"});
