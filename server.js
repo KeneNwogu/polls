@@ -37,14 +37,17 @@ app.get('/polls', jwtCheck, async (req, res) => {
 })
 
 // handles creation of posts
-app.post('/polls', celebrate({ [Segments.BODY]: PollSerializer }), jwtCheck, (req, res) => {
-    let data = req.body;
-    return res.json({ message: "authenticated"})
+app.post('/polls', celebrate({ [Segments.BODY]: PollSerializer }), jwtCheck, async (req, res) => {
+    let { title, options } = req.body;
+    let poll = await Poll.create({ title, options, user_id: req.auth.sub })
+
+    return res.json({ success: true, poll })
 })
 
 // visiting users can get specific poll [to vote]
-app.get('/polls/:poll_id', (req, res) => {
-
+app.get('/polls/:poll_id', async (req, res) => {
+    let poll = await Poll.findById(req.params.poll_id)
+    return res.json({ success: true, poll })
 })
 
 
@@ -54,7 +57,22 @@ const io = new Server(server);
 
 io.on('connection', (socket) => {
     // handle connected sockets
+    
+    socket.on('vote', async (poll_data) => {
+        let data = JSON.parse(poll_data)
+        let poll_id = data.poll_id;
+        let option_vote_index = data.option_voted;
+        let update_query = { $inc: { } }
+        update_query.$inc[`options.${option_vote_index}.votes`] = 1
+        Poll.updateOne({ poll_id }, update_query, function (err, doc){
+            if(err) console.log(err)
+            else{
+                console.log(doc);
+            }
+        })
+    })
 })
+
 
 app.use(errors());
 app.use((err, req, res, next) => {

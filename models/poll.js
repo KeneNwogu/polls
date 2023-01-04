@@ -13,6 +13,10 @@ const pollSchema = new Schema({
     options: {
         type: [optionSchema]
     },
+    public: {
+        type: Boolean,
+        default: true
+    },
     user_id: {
         type: String
     }
