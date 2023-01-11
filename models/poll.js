@@ -1,7 +1,7 @@
 const { Schema, model, Types } = require('mongoose');
 
 const optionSchema = new Schema({
-    votes: { type: Number },
+    votes: { type: Number, default: 0 },
     name: { type: String }
 })
 
