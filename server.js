@@ -34,9 +34,9 @@ var jwtCheck = jwt({
 })
 
 const auth0Management = new ManagementClient({
-    domain: process.env.AUTH_ISSUER,
-    clientId: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
+    domain: process.env.AUTH_DOMAIN,
+    clientId: process.env.MANAGER_CLIENT_ID,
+    clientSecret: process.env.MANAGER_CLIENT_SECRET,
     scope: 'read:users update:users'
 })
 
@@ -59,10 +59,12 @@ app.post('/polls', celebrate({ [Segments.BODY]: PollSerializer }), jwtCheck, asy
 app.get('/polls/:poll_id', async (req, res) => {
     try {
         let poll = await Poll.findById(req.params.poll_id)
-        const { username } = await auth0Management.getUser(poll.user_id);
+        const user = await auth0Management.getUser({ id: poll.user_id });
+        const username = user.username || user.nickname
         return res.json({ success: true, poll, username })
     }
     catch(e){
+        console.log(e.message)
         if(e.name == "CastError") return res.status(400).json({ success: false })
         else return res.status(500).json({ success: false })
     }
